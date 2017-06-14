@@ -6,10 +6,10 @@ import substitution_calculation
 from cogent.evolve.likelihood_tree import makeLikelihoodTreeLeaf
 
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Peter Maxwell"]
 __license__ = "GPL"
-__version__ = "1.9"
+__version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -102,7 +102,11 @@ class ComplexMotifProbModel(MotifProbModel):
             - mask: instantaneous change matrix"""
         self.mask = mask
         self.tuple_alphabet = tuple_alphabet
-        self.monomer_alphabet = monomers = tuple_alphabet.MolType.Alphabet
+        if tuple_alphabet.includesGapMotif():
+            monomers = tuple_alphabet.MolType.Alphabet.withGapMotif()
+            self.monomer_alphabet = monomers
+        else:
+            self.monomer_alphabet = monomers = tuple_alphabet.MolType.Alphabet
         self.word_length = length = tuple_alphabet.getMotifLen()
         size = len(tuple_alphabet)
 
@@ -143,7 +147,8 @@ class ComplexMotifProbModel(MotifProbModel):
                 if self.mask[i,j]:
                     assert self.mask[i,j] == 1.0
                     diffs = diff_pos(old_word, new_word)
-                    assert len(diffs) == 1, (old_word, new_word)
+                    assert len(diffs) == 1 or '---' in {old_word, new_word}, \
+                            (old_word, new_word)
                     diff = diffs[0]
                     yield i, old_word, j, new_word, diff
         

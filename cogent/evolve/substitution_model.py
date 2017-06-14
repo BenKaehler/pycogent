@@ -48,12 +48,12 @@ from cogent.evolve.likelihood_tree import makeLikelihoodTreeLeaf
 from cogent.maths.optimisers import ParameterOutOfBoundsError
 
 __author__ = "Peter Maxwell, Gavin Huttley and Andrew Butterfield"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __contributors__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
                     "Matthew Wakefield", "Brett Easton", "Rob Knight",
                     "Von Bing Yap"]
 __license__ = "GPL"
-__version__ = "1.9"
+__version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -171,8 +171,8 @@ class _SubstitutionModel(object):
         elif mprob_model == 'word':
             mprob_model = 'tuple'
         
-        if model_gaps and mprob_model != 'tuple':
-            raise ValueError("mprob_model must be 'tuple' to model gaps")
+        if model_gaps and mprob_model == 'monomers':
+            raise NotImplementedError("'monomers' with gaps not implemented")
         
         isinst = self._isInstantaneous
         self._instantaneous_mask = predicate2matrix(self.alphabet, isinst)

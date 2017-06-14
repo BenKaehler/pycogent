@@ -9,13 +9,15 @@ from cogent.util import parallel, table
 from cogent.recalculation.definition import ParameterController
 from cogent.maths.matrix_logarithm import is_generator_unique
 
+from cogent.util.warning import discontinued, deprecated
+
 __author__ = "Peter Maxwell"
-__copyright__ = "Copyright 2007-2016, The Cogent Project"
+__copyright__ = "Copyright 2007-2012, The Cogent Project"
 __credits__ = ["Gavin Huttley", "Andrew Butterfield", "Peter Maxwell",
                     "Matthew Wakefield", "Rob Knight", "Brett Easton", 
                     "Ben Kaehler"]
 __license__ = "GPL"
-__version__ = "1.9"
+__version__ = "1.5.3-dev"
 __maintainer__ = "Gavin Huttley"
 __email__ = "gavin.huttley@anu.edu.au"
 __status__ = "Production"
@@ -27,6 +29,14 @@ __status__ = "Production"
 # complete.
 
 class LikelihoodFunction(ParameterController):
+    def setpar(self, param_name, value, edge=None, **scope):
+        deprecated('method', 'setpar','setParamRule', '1.6')
+        return self.setParamRule(param_name, edge=edge, value=value, is_constant=True, **scope)
+    
+    def testfunction(self):
+        deprecated('method', 'testfunction','getLogLikelihood', '1.6')
+        return self.getLogLikelihood()
+    
     def getLogLikelihood(self):
         return self.getFinalResult()
     
@@ -42,7 +52,7 @@ class LikelihoodFunction(ParameterController):
     def getRateMatrixForEdge(self, name, **kw):
         """returns the rate matrix (Q) for the named edge
         
-        Note: expm(Q) will give the same result as getPsubForEdge(name)"""
+        Note: expm(Q*t) will give the same result as getPsubForEdge(name)"""
         try:
             array = self.getParamValue('Q', edge=name, **kw)
         except KeyError as err:
@@ -284,6 +294,48 @@ class LikelihoodFunction(ParameterController):
                         max_width = 80, row_ids = row_ids,
                         title=title, **self._format))
         return result
+    
+    def getStatisticsAsDict(self, with_parent_names=True,
+                with_edge_names=False):
+        """Returns a dictionary containing the statistics for each edge of the
+        tree, and any other information provided by the substitution model. The
+        dictionary is keyed at the top-level by parameter name, and then by
+        edge.name.
+        
+        Arguments:
+            - with_edge_names: if True, an ordered list of edge names is
+              included under the top-level key 'edge.names'. Default is
+              False.
+        """
+        
+        discontinued('method', "'getStatisticsAsDict' "
+                "use 'getParamValueDict(['edge'])' is nearly equivalent", 
+                '1.6')
+        
+        stats_dict = self.getParamValueDict(['edge'])
+        
+        if hasattr(self.model, 'scale_masks'):
+            for predicate in self.model.scale_masks:
+                stats_dict[predicate] = self.getScaledLengths(predicate)
+        
+        edge_vector = [e for e in self._tree.getEdgeVector() if not e.isroot()]
+        
+        # do the edge names
+        if with_parent_names:
+            parents = {}
+            for edge in edge_vector:
+                if edge.Parent.isroot():
+                    parents[edge.Name] = "root"
+                else:
+                    parents[edge.Name] = str(edge.Parent.Name)
+            stats_dict["edge.parent"] = parents
+        
+        if with_edge_names:
+            stats_dict['edge.name'] = (
+                    [e.Name for e in edge_vector if e.istip()] +
+                    [e.Name for e in edge_vector if not e.istip()])
+        
+        return stats_dict
     
     # For tests.  Compat with old LF interface
     def setName(self, name):
