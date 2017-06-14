@@ -14,7 +14,7 @@ __author__ = "Rob Knight"
 __copyright__ = "Copyright 2007-2014, The Cogent Project"
 __credits__ = ["Rob Knight", "Gavin Huttley", "Von Bing Yap", "Ben Kaehler"]
 __license__ = "GPL"
-__version__ = "1.9"
+__version__ = "1.5.3-dev"
 __maintainer__ = "Rob Knight"
 __email__ = "rob@spot.colorado.edu"
 __status__ = "Production"
@@ -57,8 +57,14 @@ def is_generator_unique(Q):
             real_close.append((i, j))
 
         # Can't deal with non-primary roots yet
-        if isclose(expe[i], expe[j]):
+        if isclose(expe[i], expe[j]) \
+                and not (isclose(expe[i], 1.) and isclose(expe[j], 1.)):
             raise NotImplementedError('non-primary root detected:\n'+repr(Q))
+
+        # EEE Hand-waving above goes like this: if the repeated eigenvalues are
+        # all close enough to zero, then the infinity of solutions that exist
+        # are all squashed and are either close to the original Q, or violate
+        # the closeness to zero enough that P would look different, too.
     
     # If the real parts of the eigenvalues are distinct, we're ok
     # For each candidate complex conjugate pair, check for equivalent Qs 
